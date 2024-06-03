@@ -20,6 +20,12 @@ def solve_optimal(state: State):
         for a in range(state.agents):
             for t in range(state.time):
                 print(f"{a}, {t}: {solver.value(model[1][t, a])}")
+        soc = 0
+        for a in range(state.agents):
+            print(f"cost   : {solver.value(model[2][a])}")
+            soc += solver.value(model[2][a])
+        print(f"total cost: {soc}")
+        print(f"time   : {solver.wall_time}")
     pass
 
 

@@ -46,5 +46,20 @@ def init_model(state: State):
             model.add(dx[t, a] + dy[t, a] <= 1)
 
     # Set the objective.
+    at_goal = {}
+    for t in range(state.time):
+        for a in range(state.agents):
+            at_goal[t, a] = model.new_bool_var(f"ag_{t}_{a}")
+            model.add(pos[t, a] == state.end[a]).only_enforce_if(at_goal[t, a].Not())
+            model.add(pos[t, a] != state.end[a]).only_enforce_if(at_goal[t, a])
 
-    return model, pos
+    cost = {}
+    for a in range(state.agents):
+        cost[a] = model.new_int_var(0, state.time, f"cost_{a}")
+        model.add(cost[a] == sum([at_goal[t, a] for t in range(state.time)]))
+
+    soc = model.new_int_var(0, state.time * state.agents, "soc")
+    model.add(soc == sum(cost[a] for a in range(state.agents)))
+    model.minimize(soc)
+
+    return model, pos, cost
