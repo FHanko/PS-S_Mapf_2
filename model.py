@@ -20,18 +20,21 @@ class Model:
 
     def solve_initial(self):
         status = self._solver.Solve(self.model)
-        return status
+        return status, self._solver.wall_time
 
     def solve_optimal(self):
         self.model.minimize(self.soc)
         status = self._solver.Solve(self.model)
-        return status
+        return status, self._solver.wall_time
 
     def get_paths(self) -> Dict[int, List[int]]:
         paths = {}
         for i in range(self._agent_count):
+            # Get path for each agent from solver values
             nodes = [v for (k1, k2), v in self._paths.items() if k2 == i]
             paths[i] = self._solver.values(nodes).array.tolist()
+            # Truncate paths at cost
+            paths[i] = paths[i][0:self._solver.value(self._costs[i] + 1)]
         return paths
 
 
