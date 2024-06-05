@@ -3,11 +3,18 @@ import os
 import sys
 
 from ortools.sat.python import cp_model
-from model import State
+from state import State
 from model import init_model
 
 
-def solve_initial():
+def solve_initial(state: State):
+    model = init_model(state)
+    status = model.solve_initial()
+    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        a = model.get_paths()
+        print(a)
+    else:
+        print("Initial state is not feasible")
     pass
 
 
@@ -18,13 +25,12 @@ def solve_optimal(state: State):
         a = model.get_paths()
         print(a)
     else:
-        print('INFEASIBLE')
+        print('Neighborhood not feasible')
     pass
 
 
 def start_lns(state: State):
-    solve_initial()
-    solve_optimal(state)
+    solve_initial(state)
 
 
 file_name = sys.argv[1]
