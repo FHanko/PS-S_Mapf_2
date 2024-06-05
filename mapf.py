@@ -12,20 +12,13 @@ def solve_initial():
 
 
 def solve_optimal(state: State):
-    solver = cp_model.CpSolver()
     model = init_model(state)
-    status = solver.Solve(model[0])
-    print(f"status   : {solver.status_name(status)}")
+    status = model.solve_optimal()
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        for a in range(state.agents):
-            for t in range(state.time):
-                print(f"{a}, {t}: {solver.value(model[1][t, a])}")
-        soc = 0
-        for a in range(state.agents):
-            print(f"cost   : {solver.value(model[2][a])}")
-            soc += solver.value(model[2][a])
-        print(f"total cost: {soc}")
-        print(f"time   : {solver.wall_time}")
+        a = model.get_paths()
+        print(a)
+    else:
+        print('INFEASIBLE')
     pass
 
 

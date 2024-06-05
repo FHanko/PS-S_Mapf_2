@@ -1,17 +1,51 @@
 from ortools.sat.python import cp_model
+from typing import List, Dict
+
+from ortools.sat.python.cp_model import IntVar
 
 
 class State:
-    def __init__(self, agents, time, width, height, start, end):
+    def __init__(self, agents: int, time: int, width: int, height: int,
+                 start: List[int], end: List[int], obstacles: List[List[int]]):
         self.agents = agents
         self.time = time
         self.width = width
         self.height = height
         self.start = start
         self.end = end
+        self.obstacles = obstacles
 
 
-def init_model(state: State):
+class Model:
+    soc = 0
+
+    def __init__(self, model: cp_model.CpModel, _paths: dict[tuple[int, int], IntVar],
+                 _costs: dict[int, IntVar], _soc: IntVar, _agent_count: int):
+        self.model = model
+        self._paths = _paths
+        self._costs = _costs
+        self.soc = _soc
+        self._agent_count = _agent_count
+        self._solver = cp_model.CpSolver()
+
+    def solve_initial(self):
+        status = self._solver.Solve(self.model)
+        return status
+
+    def solve_optimal(self):
+        self.model.minimize(self.soc)
+        status = self._solver.Solve(self.model)
+        return status
+
+    def get_paths(self) -> Dict[int, List[int]]:
+        paths = {}
+        for i in range(self._agent_count):
+            nodes = [v for (k1, k2), v in self._paths.items() if k2 == i]
+            paths[i] = self._solver.values(nodes).array.tolist()
+        return paths
+
+
+def init_model(state: State) -> Model:
     model = cp_model.CpModel()
     pos = {}
     for t in range(state.time):
@@ -53,7 +87,18 @@ def init_model(state: State):
                 model.add(pos[t + 1, a] == pos[t, a2]).only_enforce_if(a2toa)
                 model.add_at_most_one(atoa2, a2toa)
 
-    # Set the objective.
+    # No obstacle collision
+    for t in range(state.time):
+        for a in range(state.agents):
+            if t < len(state.obstacles):
+                model.add_linear_expression_in_domain(pos[t, a],
+                                                      cp_model.Domain.from_values(
+                                                          state.obstacles[t]).complement().intersection_with(
+                                                          cp_model.Domain.from_intervals(
+                                                              [[0, state.width * state.height - 1]])
+                                                      ))
+
+    # Define cost as the objective.
     at_goal = {}
     for t in range(state.time):
         for a in range(state.agents):
@@ -68,6 +113,5 @@ def init_model(state: State):
 
     soc = model.new_int_var(0, state.time * state.agents, "soc")
     model.add(soc == sum(cost[a] for a in range(state.agents)))
-    model.minimize(soc)
 
-    return model, pos, cost
+    return Model(model, pos, cost, soc, state.agents)
