@@ -34,7 +34,7 @@ class Model:
             nodes = [v for (k1, k2), v in self._paths.items() if k2 == i]
             paths[i] = self._solver.values(nodes).array.tolist()
             # Truncate paths at cost
-            paths[i] = paths[i][0:self._solver.value(self._costs[i] + 1)]
+            paths[i] = paths[i][0:self._solver.value(self._costs[i])]
         return paths
 
 
@@ -90,6 +90,10 @@ def init_model(state: State) -> Model:
                                                           cp_model.Domain.from_intervals(
                                                               [[0, state.width * state.height - 1]])
                                                       ))
+
+    # No moving away from goal.
+
+
 
     # Define cost as the objective.
     at_goal = {}

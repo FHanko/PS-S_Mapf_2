@@ -13,18 +13,23 @@ class State:
         self.end = end
         self.obstacles = obstacles
 
+    active_agents = []
+
     def neighbor_random(self, paths: Dict[int, List[int]]):
+        # Randomly select active agents.
         active = []
-        for i in range(1):
+        for i in range(2):
             active.append(random.choice(range(self.agents)))
-        print(active)
+        self.active_agents = active
+
+        # Set inactive agents to obstacles.
         inactive = [i for i in range(self.agents) if i not in active]
-        print(inactive)
         obstacles = []
         for i in range(self.time):
             obstacle_list = []
             for a in inactive:
-                obstacle_list.append(paths[a][i])
+                if i < len(paths[a]):
+                    obstacle_list.append(paths[a][i])
             obstacles.append(obstacle_list)
 
         neighbor = State(len(set(active)), self.time, self.width, self.height,

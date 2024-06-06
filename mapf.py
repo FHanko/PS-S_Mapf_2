@@ -14,7 +14,7 @@ def solve_initial(state: State):
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
         print(f"Initial solution time: {status[1]}")
         print(model.get_paths())
-        #lns_step(state, model.get_paths())
+        lns_step(state, model.get_paths())
     else:
         print("Initial state is not feasible")
     pass
@@ -25,18 +25,21 @@ def lns_step(state: State, paths: Dict[int, List[int]]):
     model = init_model(neighbor)
     status = model.solve_optimal()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
-        improved = True
-        a = model.get_paths()
-        print(a)
+        p = model.get_paths()
+        old_soc = sum([len(l) for i, l in paths.items() if i in state.active_agents])
+        new_soc = sum([len(l) for i, l in p.items()])
+        # Solution improved
+        if new_soc < old_soc:
+            c = 0
+            for i in state.active_agents:
+                paths[i] = p[c]
+                c = c + 1
+            print(f'Sum of costs: {old_soc} -> {new_soc}')
+            print(paths)
     else:
-        improved = False
         print('Neighborhood not feasible')
-    if improved:
-        pass
-    else:
-        new_state = state
-        new_paths = paths
-    lns_step(state, new_state, paths)
+
+    lns_step(state, paths)
 
 
 file_name = sys.argv[1]
