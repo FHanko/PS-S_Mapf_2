@@ -1,17 +1,21 @@
 import json
 import os
 import sys
+import time
 
 from typing import List, Dict
 from ortools.sat.python import cp_model
 from state import State
 from model import init_model
 
+start_time = time.time()
+
 
 def solve_initial(state: State):
     model = init_model(state)
     status = model.solve_initial()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
+        print("--- %s seconds ---" % (time.time() - start_time))
         print(f"Initial solution time: {status[1]}")
         print(model.get_paths())
         lns_step(state, model.get_paths())
@@ -21,7 +25,7 @@ def solve_initial(state: State):
 
 
 def lns_step(state: State, paths: Dict[int, List[int]]):
-    neighbor = state.neighbor_random(paths)
+    neighbor = state.neighbor_random(paths, 4)
     model = init_model(neighbor)
     status = model.solve_optimal()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
@@ -39,6 +43,7 @@ def lns_step(state: State, paths: Dict[int, List[int]]):
             state.time = max([len(l) for i, l in paths.items()])
             new_total_soc = sum([len(l) for i, l in paths.items()])
             print(f"Sum of costs: {old_total_soc} -> {new_total_soc}")
+            print("--- %s seconds ---" % (time.time() - start_time))
     else:
         print('Neighborhood not feasible')
 

@@ -15,10 +15,10 @@ class State:
 
     active_agents = []
 
-    def neighbor_random(self, paths: Dict[int, List[int]]):
+    def neighbor_random(self, paths: Dict[int, List[int]], neighborhood_size=10):
         # Randomly select active agents.
         active = []
-        for i in range(2):
+        for i in range(neighborhood_size):
             active.append(random.choice(range(self.agents)))
         active = set(active)
         self.active_agents = active
