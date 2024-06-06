@@ -20,6 +20,7 @@ class State:
         active = []
         for i in range(2):
             active.append(random.choice(range(self.agents)))
+        active = set(active)
         self.active_agents = active
 
         # Set inactive agents to obstacles.

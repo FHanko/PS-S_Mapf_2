@@ -91,10 +91,6 @@ def init_model(state: State) -> Model:
                                                               [[0, state.width * state.height - 1]])
                                                       ))
 
-    # No moving away from goal.
-
-
-
     # Define cost as the objective.
     at_goal = {}
     for t in range(state.time):
@@ -110,5 +106,10 @@ def init_model(state: State) -> Model:
 
     soc = model.new_int_var(0, state.time * state.agents, "soc")
     model.add(soc == sum(cost[a] for a in range(state.agents)))
+
+    # No moving away from goal.
+    for t in range(state.time - 1):
+        for a in range(state.agents):
+            model.add(pos[t, a] == pos[t + 1, a]).only_enforce_if(at_goal[t, a].Not())
 
     return Model(model, pos, cost, soc, state.agents)

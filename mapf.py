@@ -26,16 +26,19 @@ def lns_step(state: State, paths: Dict[int, List[int]]):
     status = model.solve_optimal()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
         p = model.get_paths()
-        old_soc = sum([len(l) for i, l in paths.items() if i in state.active_agents])
-        new_soc = sum([len(l) for i, l in p.items()])
-        # Solution improved
-        if new_soc < old_soc:
+        # Evaluate sum of cost of neighbor sub problem.
+        old_part_soc = sum([len(l) for i, l in paths.items() if i in state.active_agents])
+        new_part_soc = sum([len(l) for i, l in p.items()])
+        # If solution improved replace paths.
+        if new_part_soc < old_part_soc:
+            old_total_soc = sum([len(l) for i, l in paths.items()])
             c = 0
             for i in state.active_agents:
                 paths[i] = p[c]
                 c = c + 1
-            print(f'Sum of costs: {old_soc} -> {new_soc}')
-            print(paths)
+            state.time = max([len(l) for i, l in paths.items()])
+            new_total_soc = sum([len(l) for i, l in paths.items()])
+            print(f"Sum of costs: {old_total_soc} -> {new_total_soc}")
     else:
         print('Neighborhood not feasible')
 
