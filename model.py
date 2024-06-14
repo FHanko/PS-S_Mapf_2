@@ -7,34 +7,28 @@ from state import State
 
 
 class Model:
-    soc = 0
-
-    def __init__(self, model: cp_model.CpModel, _paths: dict[tuple[int, int], IntVar],
-                 _costs: dict[int, IntVar], _soc: IntVar, _agent_count: int):
+    def __init__(self, model: cp_model.CpModel, pos: dict[tuple[int, int], IntVar],
+                 costs: dict[int, IntVar], soc: IntVar, agent_count: int):
         self.model = model
-        self._paths = _paths
-        self._costs = _costs
-        self.soc = _soc
-        self._agent_count = _agent_count
-        self._solver = cp_model.CpSolver()
+        self.pos = pos
+        self.costs = costs
+        self.soc = soc
+        self.agent_count = agent_count
+        self.solver = cp_model.CpSolver()
 
-    def solve_initial(self):
-        status = self._solver.Solve(self.model)
-        return status, self._solver.wall_time
-
-    def solve_optimal(self):
+    def solve(self):
         self.model.minimize(self.soc)
-        status = self._solver.Solve(self.model)
-        return status, self._solver.wall_time
+        status = self.solver.Solve(self.model)
+        return status, self.solver.wall_time
 
     def get_paths(self) -> Dict[int, List[int]]:
         paths = {}
-        for i in range(self._agent_count):
+        for i in range(self.agent_count):
             # Get path for each agent from solver values
-            nodes = [v for (k1, k2), v in self._paths.items() if k2 == i]
-            paths[i] = self._solver.values(nodes).array.tolist()
+            nodes = [v for (k1, k2), v in self.pos.items() if k2 == i]
+            paths[i] = self.solver.values(nodes).array.tolist()
             # Truncate paths at cost
-            paths[i] = paths[i][0:self._solver.value(self._costs[i])]
+            paths[i] = paths[i][0:self.solver.value(self.costs[i])]
         return paths
 
 

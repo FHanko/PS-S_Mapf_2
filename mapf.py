@@ -12,42 +12,48 @@ start_time = time.time()
 
 
 def solve_initial(state: State):
-    model = init_model(state)
-    status = model.solve_initial()
-    if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
-        print("--- %s seconds ---" % (time.time() - start_time))
-        print(f"Initial solution time: {status[1]}")
-        print(model.get_paths())
-        lns_step(state, model.get_paths())
-    else:
-        print("Initial state is not feasible")
-    pass
+    # Set infeasible shortest paths. No need for A* for simple cases.
+    paths = {}
+    for a in range(state.agents):
+        current = state.start[a]
+        paths[a] = [current]
+        while current % state.width != state.end[a] % state.width:
+            current += 1 if state.end[a] % state.width > current % state.width else -1
+            paths[a].append(current)
+        while current // state.height != state.end[a] // state.height:
+            current += state.width if state.end[a] // state.height > current // state.height else -state.width
+            paths[a].append(current)
+    # Start lns with infeasible initial state.
+    state.paths = paths
+    lns_step(state)
 
 
-def lns_step(state: State, paths: Dict[int, List[int]]):
-    neighbor = state.neighbor_random(paths, 4)
+def lns_step(state: State):
+    # For infeasible states the neighbor will make it feasible after some iterations.
+    # For feasible states the neighbor will try to improve the solution.
+    neighbor = state.neighbor()
     model = init_model(neighbor)
-    status = model.solve_optimal()
+    status = model.solve()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
-        p = model.get_paths()
+        neighbor.paths = model.get_paths()
         # Evaluate sum of cost of neighbor sub problem.
-        old_part_soc = sum([len(l) for i, l in paths.items() if i in state.active_agents])
-        new_part_soc = sum([len(l) for i, l in p.items()])
+        old_sub_soc = state.get_soc(neighbor.active_agents)
+        new_sub_soc = neighbor.get_soc(range(neighbor.agents))
         # If solution improved replace paths.
-        if new_part_soc < old_part_soc:
-            old_total_soc = sum([len(l) for i, l in paths.items()])
-            c = 0
-            for i in state.active_agents:
-                paths[i] = p[c]
-                c = c + 1
-            state.time = max([len(l) for i, l in paths.items()])
-            new_total_soc = sum([len(l) for i, l in paths.items()])
-            print(f"Sum of costs: {old_total_soc} -> {new_total_soc}")
-            print("--- %s seconds ---" % (time.time() - start_time))
+        if (not state.feasible) or (new_sub_soc < old_sub_soc):
+            old_total_soc = state.get_soc(range(state.agents))
+
+            state.merge_paths(neighbor)
+
+            if not state.feasible and neighbor.active_agents == set():
+                state.feasible = True
+                print(f"Initial solution: {state.paths} at time {time.time() - start_time}")
+            elif state.feasible:
+                new_total_soc = state.get_soc(range(state.agents))
+                print(f"Sum of costs: {old_total_soc} -> {new_total_soc} at time {time.time() - start_time}")
     else:
         print('Neighborhood not feasible')
-
-    lns_step(state, paths)
+    lns_step(state)
 
 
 file_name = sys.argv[1]
