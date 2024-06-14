@@ -25,6 +25,7 @@ def solve_initial(state: State):
             paths[a].append(current)
     # Start lns with infeasible initial state.
     state.paths = paths
+
     lns_step(state)
 
 
@@ -45,11 +46,13 @@ def lns_step(state: State):
 
             state.merge_paths(neighbor)
 
+            new_total_soc = state.get_soc(range(state.agents))
             if not state.feasible and neighbor.active_agents == set():
                 state.feasible = True
                 print(f"Initial solution: {state.paths} at time {time.time() - start_time}")
+                print(f"{[len(p) for k, p in state.paths.items()]}")
+                print(f"Sum of costs: {new_total_soc}")
             elif state.feasible:
-                new_total_soc = state.get_soc(range(state.agents))
                 print(f"Sum of costs: {old_total_soc} -> {new_total_soc} at time {time.time() - start_time}")
     else:
         print('Neighborhood not feasible')

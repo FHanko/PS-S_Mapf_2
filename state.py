@@ -43,23 +43,21 @@ class State:
         else:
             return self.neighbor_random()
 
-    def get_active_from_conflicts(self, max_size):
-        for p1 in self.paths:
-            for p2 in self.paths:
-                for t in range(self.time):
-                    if (p1 != p2 and t < len(self.paths[p1]) and t < len(self.paths[p2])
-                            and self.paths[p1][t] == self.paths[p2][t]):
-                        self.active_agents.add(p1)
-                        self.active_agents.add(p2)
-            if len(self.active_agents) >= max_size:
-                return
-
     def neighbor_repair(self, neighborhood_size=10):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Select agents with conflicting paths as active agents.
-        neighbor.get_active_from_conflicts(neighborhood_size)
+        for p1 in neighbor.paths:
+            for p2 in neighbor.paths:
+                for t in range(neighbor.time):
+                    if (p1 != p2 and t < len(neighbor.paths[p1]) and t < len(neighbor.paths[p2])
+                            and neighbor.paths[p1][t] == neighbor.paths[p2][t]):
+                        neighbor.active_agents.add(p1)
+                        neighbor.active_agents.add(p2)
+            if len(neighbor.active_agents) >= neighborhood_size:
+                break
 
+        print(neighbor.active_agents)
         # Set neighbor attributes.
         neighbor.agents = len(neighbor.active_agents)
         neighbor.obstacles = neighbor.get_obstacles()
