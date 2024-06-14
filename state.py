@@ -57,10 +57,9 @@ class State:
             if len(neighbor.active_agents) >= neighborhood_size:
                 break
 
-        print(neighbor.active_agents)
         # Set neighbor attributes.
-        neighbor.agents = len(neighbor.active_agents)
         neighbor.obstacles = neighbor.get_obstacles()
+        neighbor.agents = len(neighbor.active_agents)
         neighbor.start = [self.start[a] for a in neighbor.active_agents]
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
@@ -72,8 +71,8 @@ class State:
         for i in range(neighborhood_size):
             neighbor.active_agents.add(random.choice(range(self.agents)))
         # Set neighbor attributes.
-        neighbor.agents = len(neighbor.active_agents)
         neighbor.obstacles = neighbor.get_obstacles()
+        neighbor.agents = len(neighbor.active_agents)
         neighbor.start = [self.start[a] for a in neighbor.active_agents]
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
