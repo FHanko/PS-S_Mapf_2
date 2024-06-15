@@ -27,8 +27,6 @@ class Model:
             # Get path for each agent from solver values
             nodes = [v for (k1, k2), v in self.pos.items() if k2 == i]
             paths[i] = self.solver.values(nodes).array.tolist()
-            # Truncate paths at cost
-            paths[i] = paths[i][0:self.solver.value(self.costs[i])]
         return paths
 
 
@@ -63,16 +61,6 @@ def init_model(state: State) -> Model:
             model.add_abs_equality(dx, x[t, a] - x[t + 1, a])
             model.add_abs_equality(dy, y[t, a] - y[t + 1, a])
             model.add(dx + dy <= 1)
-
-    # No swapping of agents.
-    for t in range(state.time - 1):
-        for a in range(state.agents):
-            for a2 in range(state.agents):
-                atoa2 = model.new_bool_var("")
-                a2toa = model.new_bool_var("")
-                model.add(pos[t, a] == pos[t + 1, a2]).only_enforce_if(atoa2)
-                model.add(pos[t + 1, a] == pos[t, a2]).only_enforce_if(a2toa)
-                model.add_at_most_one(atoa2, a2toa)
 
     # No obstacle collision
     for t in range(state.time):
