@@ -23,7 +23,7 @@ class State:
             c = c + 1
 
     def get_soc(self, agent_subset):
-        return sum([len(l) for i, l in self.paths.items() if i in agent_subset])
+        return sum([len([p for p in l if p != self.end[i]]) + 1 for i, l in self.paths.items() if i in agent_subset])
 
     # Turn the paths of inactive agents to a list of obstacles at specific times and return it.
     def get_obstacles(self) -> List[List[int]]:
@@ -43,10 +43,11 @@ class State:
         else:
             return self.neighbor_random()
 
-    def neighbor_repair(self, neighborhood_size=10):
+    def neighbor_repair(self, neighborhood_size=5):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Select agents with conflicting paths as active agents.
+
         for p1 in neighbor.paths:
             for p2 in neighbor.paths:
                 for t in range(neighbor.time):
@@ -54,7 +55,7 @@ class State:
                             and neighbor.paths[p1][t] == neighbor.paths[p2][t]):
                         neighbor.active_agents.add(p1)
                         neighbor.active_agents.add(p2)
-            if len(neighbor.active_agents) >= neighborhood_size:
+            if len(neighbor.active_agents) > neighborhood_size:
                 break
 
         # Set neighbor attributes.
@@ -64,7 +65,7 @@ class State:
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
 
-    def neighbor_random(self, neighborhood_size=10):
+    def neighbor_random(self, neighborhood_size=20):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Randomly select active agents.

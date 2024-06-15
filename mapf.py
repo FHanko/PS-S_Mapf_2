@@ -23,9 +23,13 @@ def solve_initial(state: State):
         while current // state.height != state.end[a] // state.height:
             current += state.width if state.end[a] // state.height > current // state.height else -state.width
             paths[a].append(current)
+    # Extend paths to later get correct obstacles.
+    for p in paths:
+        while len(paths[p]) < state.time:
+            paths[p].append(paths[p][-1])
     # Start lns with infeasible initial state.
     state.paths = paths
-
+    # print(json.dumps(state.paths, default=str))
     lns_step(state)
 
 
@@ -33,29 +37,30 @@ def lns_step(state: State):
     # For infeasible states the neighbor will make it feasible after some iterations.
     # For feasible states the neighbor will try to improve the solution.
     neighbor = state.neighbor()
+    print(neighbor.active_agents)
     model = init_model(neighbor)
     status = model.solve()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
         neighbor.paths = model.get_paths()
+
         # Evaluate sum of cost of neighbor sub problem.
         old_sub_soc = state.get_soc(neighbor.active_agents)
         new_sub_soc = neighbor.get_soc(range(neighbor.agents))
         # If solution improved replace paths.
         if (not state.feasible) or (new_sub_soc < old_sub_soc):
             old_total_soc = state.get_soc(range(state.agents))
-
             state.merge_paths(neighbor)
 
             new_total_soc = state.get_soc(range(state.agents))
             if not state.feasible and neighbor.active_agents == set():
                 state.feasible = True
-                print(f"Initial solution: {state.paths} at time {time.time() - start_time}")
-                print(f"{[len(p) for k, p in state.paths.items()]}")
-                print(f"Sum of costs: {new_total_soc}")
+                state.time = max([len(l) for i, l in state.paths.items()])
+                print(f"Initial solution: \n{str(state.paths)}")
+                print(f"Sum of costs: {new_total_soc} at time {time.time() - start_time}")
             elif state.feasible:
                 print(f"Sum of costs: {old_total_soc} -> {new_total_soc} at time {time.time() - start_time}")
     else:
-        print('Neighborhood not feasible')
+        pass
     lns_step(state)
 
 
