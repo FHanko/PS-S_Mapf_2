@@ -35,7 +35,9 @@ def init_model(state: State) -> Model:
     pos = {}
     for t in range(state.time):
         for a in range(state.agents):
-            pos[t, a] = model.new_int_var(0, state.width * state.height - 1, f"pos_{t}_{a}")
+            pos[t, a] = model.new_int_var_from_domain(
+                cp_model.Domain.from_values(state.obstacles[t]).complement().intersection_with(
+                    cp_model.Domain.from_intervals([[0, state.width * state.height - 1]])), f"pos_{t}_{a}")
         # No two agents at the same position at the same time.
         model.add_all_different(pos[t, a] for a in range(state.agents))
 
@@ -61,17 +63,6 @@ def init_model(state: State) -> Model:
             model.add_abs_equality(dx, x[t, a] - x[t + 1, a])
             model.add_abs_equality(dy, y[t, a] - y[t + 1, a])
             model.add(dx + dy <= 1)
-
-    # No obstacle collision
-    for t in range(state.time):
-        for a in range(state.agents):
-            if t < len(state.obstacles):
-                model.add_linear_expression_in_domain(pos[t, a],
-                                                      cp_model.Domain.from_values(
-                                                          state.obstacles[t]).complement().intersection_with(
-                                                          cp_model.Domain.from_intervals(
-                                                              [[0, state.width * state.height - 1]])
-                                                      ))
 
     # Define cost as the objective.
     at_goal = {}
