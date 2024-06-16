@@ -64,12 +64,13 @@ def lns_step(state: State):
     lns_step(state)
 
 
-file_name = sys.argv[1]
-if os.path.exists(file_name):
-    with open(file_name, 'r') as f:
-        input_data = json.load(f)
-        input_state = State(**input_data)
-        solve_initial(input_state)
-else:
-    print(f"File {os.path.basename(file_name)} not found.")
-    exit(1)
+if __name__ == "__main__":
+    file_name = sys.argv[1]
+    if os.path.exists(file_name):
+        with open(file_name, 'r') as f:
+            input_data = json.load(f)
+            input_state = State(**input_data)
+            solve_initial(input_state)
+    else:
+        print(f"File {os.path.basename(file_name)} not found.")
+        exit(1)
