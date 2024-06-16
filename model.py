@@ -58,8 +58,8 @@ def init_model(state: State) -> Model:
 
     for t in range(state.time - 1):
         for a in range(state.agents):
-            dx = model.new_int_var(0, state.width, f"dx_{t}_{a}")
-            dy = model.new_int_var(0, state.height, f"dy_{t}_{a}")
+            dx = model.new_int_var(0, 1, f"dx_{t}_{a}")
+            dy = model.new_int_var(0, 1, f"dy_{t}_{a}")
             model.add_abs_equality(dx, x[t, a] - x[t + 1, a])
             model.add_abs_equality(dy, y[t, a] - y[t + 1, a])
             model.add(dx + dy <= 1)

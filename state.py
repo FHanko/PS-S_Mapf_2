@@ -43,7 +43,7 @@ class State:
         else:
             return self.neighbor_random()
 
-    def neighbor_repair(self, neighborhood_size=5):
+    def neighbor_repair(self, neighborhood_size=2):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Select agents with conflicting paths as active agents.
