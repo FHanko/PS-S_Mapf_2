@@ -29,23 +29,24 @@ mapf.solution_callback = _solution_callback
 
 
 files = []
-for _dir in os.listdir("data"):
-    for file in os.listdir(f"data/{_dir}"):
-        files.append(f"data/{_dir}/{file}")
+for file in os.listdir(f"data"):
+    files.append(f"data/{file}")
 
-while len(files) > 0:
-    current = [f for f in files if f.__contains__(files[0].split('/')[-1])]
-
-    for c in current:
-        current_file = c
-        current_start_time = time.time()
-        with open(c, 'r') as f:
-            input_data = json.load(f)
-            input_state = State(**input_data)
-            mapf.solve_initial(input_state)
-
-        files.remove(c)
-
-
-
+for c in files:
+    current_file = c
+    current_start_time = time.time()
+    with open(c, 'r') as f:
+        input_data = json.load(f)
+        input_state = State(**input_data)
+        # Compute optimal sum of costs if not already contained in input.
+        if input_state.soc == 0:
+            input_state.obstacles = [[] for _ in range(input_state.time)]
+            model = init_model(input_state)
+            model.solve()
+            input_state.paths = model.get_paths()
+            t = time.time() - current_start_time
+            print(f"\"optimal\";\"{current_file}\";{round(t, 3)};{input_state.get_soc(range(input_state.agents))}")
+        else:
+            print(f"\"optimal\";\"{current_file}\";{input_state.soc_time};{input_state.soc}")
+        # mapf.solve_initial(input_state)
 

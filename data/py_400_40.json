@@ -87,5 +87,7 @@
     29
   ],
   "time": 30,
-  "obstacles": []
+  "obstacles": [],
+  "soc": 628,
+  "soc_time": 101.478
 }

@@ -4,7 +4,7 @@ from typing import List, Dict
 
 class State:
     def __init__(self, agents: int, time: int, width: int, height: int,
-                 start: List[int], end: List[int], obstacles: List[List[int]]):
+                 start: List[int], end: List[int], obstacles: List[List[int]], soc: int = 0, soc_time: int = 0):
         self.agents = agents
         self.time = time
         self.width = width
@@ -15,6 +15,8 @@ class State:
         self.paths = {}
         self.active_agents = set()
         self.feasible = False
+        self.soc = soc
+        self.soc_time = soc_time
 
     def merge_paths(self, other: 'State'):
         c = 0
@@ -65,7 +67,7 @@ class State:
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
 
-    def neighbor_random(self, neighborhood_size=20):
+    def neighbor_random(self, neighborhood_size=15):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Randomly select active agents.
