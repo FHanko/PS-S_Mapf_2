@@ -13,7 +13,7 @@ current_start_time = time.time()
 
 def _iteration_callback(iteration: int):
     t = time.time() - current_start_time
-    if t > 180 or iteration > 200:
+    if t > 600 or iteration > 500:
         return False
     else:
         return True
@@ -21,7 +21,11 @@ def _iteration_callback(iteration: int):
 
 def _solution_callback(state: State):
     t = time.time() - current_start_time
-    print(f"\"{current_file}\";{round(t,3)};{state.get_soc(range(state.agents))}")
+    print(f"\"lns\";\"{current_file}\";{round(t,3)};{state.get_soc(range(state.agents))}")
+    if state.get_soc(range(state.agents)) == state.soc:
+        return True
+    else:
+        return False
 
 
 mapf.iteration_callback = _iteration_callback
@@ -48,5 +52,6 @@ for c in files:
             print(f"\"optimal\";\"{current_file}\";{round(t, 3)};{input_state.get_soc(range(input_state.agents))}")
         else:
             print(f"\"optimal\";\"{current_file}\";{input_state.soc_time};{input_state.soc}")
-        # mapf.solve_initial(input_state)
+        current_start_time = time.time()
+        mapf.solve_initial(input_state)
 
