@@ -33,11 +33,11 @@ def solve_initial(state: State):
     lns_step(state)
 
 
-def lns_step(state: State):
+def lns_step(state: State, iteration: int = 0):
     # For infeasible states the neighbor will make it feasible after some iterations.
     # For feasible states the neighbor will try to improve the solution.
     neighbor = state.neighbor()
-    print(neighbor.active_agents)
+    print(f"{neighbor.active_agents} {iteration}")
     model = init_model(neighbor)
     status = model.solve()
     if status[0] == cp_model.OPTIMAL or status[0] == cp_model.FEASIBLE:
@@ -57,11 +57,22 @@ def lns_step(state: State):
                 state.time = max([len(l) for i, l in state.paths.items()])
                 print(f"Initial solution: \n{str(state.paths)}")
                 print(f"Sum of costs: {new_total_soc} at time {time.time() - start_time}")
+                solution_callback(state)
             elif state.feasible:
                 print(f"Sum of costs: {old_total_soc} -> {new_total_soc} at time {time.time() - start_time}")
+                solution_callback(state)
     else:
         pass
-    lns_step(state)
+    if iteration_callback(iteration):
+        lns_step(state, iteration + 1)
+
+
+def iteration_callback(iteration: int):
+    return True
+
+
+def solution_callback(state: State):
+    pass
 
 
 if __name__ == "__main__":
