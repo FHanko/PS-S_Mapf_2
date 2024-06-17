@@ -18,6 +18,7 @@ class Model:
 
     def solve(self):
         self.model.minimize(self.soc)
+        self.solver.parameters.num_workers = 8
         status = self.solver.Solve(self.model)
         return status, self.solver.wall_time
 

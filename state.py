@@ -67,11 +67,11 @@ class State:
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
 
-    def neighbor_random(self, neighborhood_size=15):
+    def neighbor_random(self, neighborhood_size=12):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Randomly select active agents.
-        for i in range(neighborhood_size):
+        while len(neighbor.active_agents) < neighborhood_size:
             neighbor.active_agents.add(random.choice(range(self.agents)))
         # Set neighbor attributes.
         neighbor.obstacles = neighbor.get_obstacles()
