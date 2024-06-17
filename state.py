@@ -67,7 +67,7 @@ class State:
         neighbor.end = [self.end[a] for a in neighbor.active_agents]
         return neighbor
 
-    def neighbor_random(self, neighborhood_size=12):
+    def neighbor_random(self, neighborhood_size=15):
         neighbor = State(self.agents, self.time, self.width, self.height, self.start, self.end, self.obstacles)
         neighbor.paths = self.paths
         # Randomly select active agents.

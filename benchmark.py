@@ -9,11 +9,12 @@ from model import init_model
 
 current_file = ""
 current_start_time = time.time()
+current_max = 0
 
 
 def _iteration_callback(iteration: int):
     t = time.time() - current_start_time
-    if t > 600 or iteration > 500:
+    if t > (current_max * 1.5) or iteration > 500:
         return False
     else:
         return True
@@ -52,6 +53,7 @@ for c in files:
             print(f"\"optimal\";\"{current_file}\";{round(t, 3)};{input_state.get_soc(range(input_state.agents))}")
         else:
             print(f"\"optimal\";\"{current_file}\";{input_state.soc_time};{input_state.soc}")
+        current_max = input_state.soc_time
         current_start_time = time.time()
         mapf.solve_initial(input_state)
 
